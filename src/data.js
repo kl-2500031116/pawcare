@@ -1,3 +1,4 @@
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { getSupabase } from "./supabase.js";
 
 const allowedTypes = new Set(["Dog", "Cat", "Rabbit", "Other"]);
@@ -29,6 +30,16 @@ export async function sendEmailNotification(event, recordId) {
     return "";
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
+    if (error instanceof FunctionsHttpError && error.context instanceof Response) {
+      try {
+        const responseBody = await error.context.clone().json();
+        if (typeof responseBody?.error === "string") {
+          return `Saved successfully, but email notifications could not be delivered. ${responseBody.error}`;
+        }
+      } catch {
+        return `Saved successfully, but email notifications could not be delivered. ${detail}`;
+      }
+    }
     return `Saved successfully, but email notifications could not be delivered. ${detail}`;
   }
 }

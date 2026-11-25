@@ -350,6 +350,7 @@ Deno.serve(async (request: Request) => {
   }
 
   let deliveryFailed = false;
+  let firstDeliveryError = "";
   let logFailed = false;
   let notificationInProgress = false;
   for (const notice of notices) {
@@ -389,6 +390,7 @@ Deno.serve(async (request: Request) => {
 
     if (deliveryError) {
       deliveryFailed = true;
+      if (!firstDeliveryError) firstDeliveryError = deliveryError;
       const finishError = await finishNotification(serviceClient, recipientKey, "failed", deliveryError);
       if (finishError) logFailed = true;
       continue;
@@ -399,7 +401,7 @@ Deno.serve(async (request: Request) => {
   }
 
   if (logFailed) return respond(500, { error: "Some notification delivery statuses could not be recorded." });
-  if (deliveryFailed) return respond(502, { error: "Some email notifications could not be delivered. Please try again." });
+  if (deliveryFailed) return respond(502, { error: firstDeliveryError });
   if (notificationInProgress) return respond(409, { error: "Some notifications are already being delivered." });
   return respond(200, { success: "Email notifications sent." });
 });
