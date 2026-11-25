@@ -1,0 +1,9 @@
+node_modules
+dist
+data
+infinityfree-upload/
+supabase/.temp/
+gcm-diagnose.log
+.env
+.env.*
+!.env.example
